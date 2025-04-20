@@ -12,50 +12,49 @@ const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || "";
 app.use(bodyParser.json());
 
 app.post("/sns", async (req: Request, res: Response): Promise<void> => {
-  const type = req.headers["x-amz-sns-message-type"] as string;
-  const message = req.body;
-
-  if (!message || !type) {
-    res.status(400).send("Invalid");
-    return;
-  }
-
-  if (type === "SubscriptionConfirmation" && message.SubscribeURL) {
-    console.log("[INFO] Confirming SNS subscription...");
-    await axios.get(message.SubscribeURL);
-    res.status(200).send("Subscription confirmed");
-    return;
-  }
-
-  if (type === "Notification" && message.Message) {
-    try {
+    const type = req.headers["x-amz-sns-message-type"] as string;
+    const message = req.body;
+  
+    console.log(`[SNS] Received request. Type: ${type}`);
+    console.log("[SNS] Payload:", JSON.stringify(message, null, 2));
+  
+    if (!message || !type) {
+      res.status(400).send("Invalid");
+      return;
+    }
+  
+    if (type === "SubscriptionConfirmation" && message.SubscribeURL) {
+      console.log("[SNS] Confirming subscription via:", message.SubscribeURL);
+      try {
+        await axios.get(message.SubscribeURL);
+        console.log("[SNS] Subscription confirmed.");
+      } catch (error) {
+        console.error("[SNS] Failed to confirm subscription:", error);
+      }
+      res.status(200).send("OK");
+      return;
+    }
+  
+    if (type === "Notification" && message.Message) {
       const parsed = JSON.parse(message.Message);
-
+  
       if (parsed.notificationType === "Bounce") {
-        const emails = parsed.bounce.bouncedRecipients
-          .map((r: any) => r.emailAddress)
-          .join(", ");
+        const emails = parsed.bounce.bouncedRecipients.map((r: any) => r.emailAddress).join(", ");
         await sendDiscord(`📩 **Bounce**: \`${emails}\``);
       } else if (parsed.notificationType === "Complaint") {
-        const emails = parsed.complaint.complainedRecipients
-          .map((r: any) => r.emailAddress)
-          .join(", ");
+        const emails = parsed.complaint.complainedRecipients.map((r: any) => r.emailAddress).join(", ");
         await sendDiscord(`🚨 **Complaint**: \`${emails}\``);
       } else {
         await sendDiscord(`ℹ️ SES Notification:\n\`\`\`json\n${message.Message}\n\`\`\``);
       }
-
-      res.status(200).send("Notification received");
-    } catch (err) {
-      console.error("❌ Error parsing SNS message", err);
-      res.status(500).send("Internal error");
+  
+      res.status(200).send("OK");
+      return;
     }
-    return;
-  }
-
-  res.status(200).send("Ignored");
-});
-
+  
+    res.status(200).send("Ignored");
+  });
+  
 async function sendDiscord(content: string): Promise<void> {
   try {
     if (!DISCORD_WEBHOOK_URL) return;
