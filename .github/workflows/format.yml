@@ -1,0 +1,47 @@
+name: Format Code
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+# Add permissions block
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  format:
+    name: Check and Format Code
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-pnpm
+        with:
+          node-version: '20'
+          pnpm-version: '9.12.3'
+          install-dependencies: 'true'
+
+      - name: Check formatting
+        run: pnpm format:check
+
+      - name: Format code if check fails
+        if: failure()
+        run: pnpm format
+
+      - name: Commit changes if any
+        if: failure()
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'style: format code with prettier'
+          commit_user_name: 'GitHub Actions'
+          commit_user_email: 'actions@github.com'
+          commit_author: 'GitHub Actions <actions@github.com>'

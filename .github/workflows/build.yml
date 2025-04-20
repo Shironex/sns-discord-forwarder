@@ -1,0 +1,31 @@
+name: Build Project
+
+on:
+  push:
+    branches: [master, dev]
+  pull_request:
+    branches: [master, dev]
+  workflow_dispatch:
+
+# Add permissions block
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Project
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-pnpm
+        with:
+          node-version: '20'
+          pnpm-version: '9.12.3'
+          install-dependencies: 'true'
+
+      - name: Build project
+        run: pnpm build
