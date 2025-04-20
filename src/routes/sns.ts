@@ -13,6 +13,7 @@ snsRouter.post(
   express.json({ type: 'application/json' }),
   async (req: Request, res: Response): Promise<void> => {
     const body = req.body as SNSEvent;
+    logger.debug('[SNS] Raw body:', req.body);
 
     if (!body?.Type || !body.MessageId || !body.Message) {
       logger.error('[SNS] Invalid SNS message structure.');
