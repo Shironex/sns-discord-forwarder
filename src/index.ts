@@ -3,6 +3,9 @@ import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 import { snsRouter } from './routes/sns';
 import { logger } from './utils/logger';
+import { healthRouter } from './routes/health';
+import rateLimit from 'express-rate-limit';
+import path from 'path';
 
 dotenv.config();
 
@@ -12,7 +15,20 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.text({ type: 'text/plain' }));
 
+// Rate limiting for endpoint /sns
+const snsLimiter = rateLimit({
+  windowMs: 60 * 1000 * 60, // 60 minutes
+  max: 10,
+  message: { error: 'Too many requests, please try again later.' },
+});
+
+app.use('/sns', snsLimiter);
+
 app.use(snsRouter);
+app.use(healthRouter);
+
+// Serwowanie plików statycznych z katalogu public
+app.use(express.static(path.join(__dirname, 'public')));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => logger.info(`[READY] Listening on port ${PORT}`));
