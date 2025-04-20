@@ -7,10 +7,7 @@ interface DiscordEmbedOptions {
   timestamp?: boolean;
 }
 
-export const sendToDiscord = async (
-  message: string,
-  options?: DiscordEmbedOptions,
-) => {
+export const sendToDiscord = async (message: string, options?: DiscordEmbedOptions) => {
   try {
     const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
     if (!webhookUrl) throw new Error('DISCORD_WEBHOOK_URL not set');
