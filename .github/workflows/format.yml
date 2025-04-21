@@ -31,14 +31,16 @@ jobs:
           install-dependencies: 'true'
 
       - name: Check formatting
+        id: check-format
+        continue-on-error: true
         run: pnpm format:check
 
       - name: Format code if check fails
-        if: failure()
+        if: steps.check-format.outcome == 'failure'
         run: pnpm format
 
       - name: Commit changes if any
-        if: failure()
+        if: steps.check-format.outcome == 'failure'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: 'style: format code with prettier'

@@ -40,11 +40,12 @@ export function readHtmlFile(filename: string): string {
     return readFileSync(prodPath, 'utf-8');
   } catch (error) {
     // Fallback for development environment
+    console.warn(`HTML template ${filename} was not found in production path, using fallback.`, error);
     const devPath = resolve(process.cwd(), `src/public/${filename}`);
     try {
       return readFileSync(devPath, 'utf-8');
     } catch (error) {
-      console.warn(`HTML template ${filename} not found, using fallback.`);
+      console.warn(`HTML template ${filename} was not found in development path, using fallback.`, error);
       return `<html><body><h1>${filename}</h1><p>Service is running.</p></body></html>`;
     }
   }
