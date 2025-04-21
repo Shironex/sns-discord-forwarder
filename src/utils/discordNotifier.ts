@@ -96,7 +96,7 @@ export const sendToDiscord = async (message: string, options?: DiscordEmbedOptio
         embeds: [embed],
       });
     }
-    
+
     logger.info('Sent embed message to Discord.');
   } catch (err) {
     logger.error('Failed to send Discord embed message:', err);
