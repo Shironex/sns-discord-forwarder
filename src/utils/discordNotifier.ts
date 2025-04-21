@@ -94,7 +94,7 @@ export const sendToDiscord = async (message: string, options?: DiscordEmbedOptio
     } else {
       await axios.post(webhookUrl, { embeds: [embed] });
     }
-    
+
     await axios.post(webhookUrl, embed);
     logger.info('Sent embed message to Discord.');
   } catch (err) {

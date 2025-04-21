@@ -97,7 +97,11 @@ export function readHtmlFile(filename: string): string {
  * const timestamps = extractScanTimestamps('Start date is 2023-01-01 12:00:00 UTC, End date is 2023-01-01 12:01:00 UTC');
  * console.log(timestamps); // { start: '2023-01-01 12:00:00 UTC', end: '2023-01-01 12:01:00 UTC', duration: '1 min' }
  */
-export function extractScanTimestamps(log: string): { start?: string; end?: string; duration?: string } {
+export function extractScanTimestamps(log: string): {
+  start?: string;
+  end?: string;
+  duration?: string;
+} {
   const startMatch = log.match(/Start date is (.+)/);
   const endMatch = log.match(/End date is (.+)/);
 

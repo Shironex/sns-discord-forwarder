@@ -63,7 +63,6 @@ reportRouter.post('/report', async (req: Request, res: Response): Promise<void> 
 
     fs.unlinkSync(filePath); // cleanup
 
-
     res.status(200).send('Report sent to Discord');
   } catch (err) {
     logger.error('[REPORT] Failed to process report:', err);
