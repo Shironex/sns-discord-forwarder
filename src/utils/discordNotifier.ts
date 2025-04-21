@@ -92,10 +92,11 @@ export const sendToDiscord = async (message: string, options?: DiscordEmbedOptio
         headers: form.getHeaders(),
       });
     } else {
-      await axios.post(webhookUrl, { embeds: [embed] });
+      await axios.post(webhookUrl, {
+        embeds: [embed],
+      });
     }
-
-    await axios.post(webhookUrl, embed);
+    
     logger.info('Sent embed message to Discord.');
   } catch (err) {
     logger.error('Failed to send Discord embed message:', err);
