@@ -71,6 +71,11 @@ export const sendToDiscord = async (message: string, options?: DiscordEmbedOptio
     const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
     if (!webhookUrl) throw new Error('DISCORD_WEBHOOK_URL not set');
 
+    if (typeof message !== 'string') {
+      throw new Error('sendToDiscord first argument must be a string');
+    }
+
+    // Build embed
     const embed = {
       description: message,
       title: options?.title,
@@ -79,21 +84,25 @@ export const sendToDiscord = async (message: string, options?: DiscordEmbedOptio
       fields: options?.fields || [],
     };
 
+    await axios.post(webhookUrl, {
+      embeds: [embed], // uwzględnij tylko poprawne pola!
+    });
+    
+    logger.info('[Discord] Embed sent');
+    
     if (options?.filePath) {
       const form = new FormData();
-      form.append('payload_json', JSON.stringify({ embeds: [embed] }));
+      form.append('payload_json', JSON.stringify({
+        content: '📎 Full scan log attached.',
+      }));
       form.append('file', fs.createReadStream(options.filePath), options.fileName || 'log.txt');
-
+    
       await axios.post(webhookUrl, form, {
         headers: form.getHeaders(),
       });
-    } else {
-      await axios.post(webhookUrl, {
-        embeds: [embed],
-      });
+    
+      logger.info('[Discord] File attached');
     }
-
-    logger.info('Sent embed message to Discord.');
   } catch (err) {
     logger.error('Failed to send Discord embed message:', err);
   }
