@@ -19,12 +19,12 @@ reportRouter.post('/report', async (req: Request, res: Response): Promise<void> 
     const serverName = req.headers['x-server']?.toString() || 'Unknown Server';
     const lines = logContent.split('\n');
 
-    const warningLines = lines.filter((line: string) =>
-      line.match(/\[\s*Warning\s*\]/i) || line.toLowerCase().includes('warning')
+    const warningLines = lines.filter(
+      (line: string) => line.match(/\[\s*Warning\s*\]/i) || line.toLowerCase().includes('warning'),
     );
 
-    const errorLines = lines.filter((line: string) =>
-      line.match(/\[\s*Error\s*\]/i) || line.toLowerCase().includes('error')
+    const errorLines = lines.filter(
+      (line: string) => line.match(/\[\s*Error\s*\]/i) || line.toLowerCase().includes('error'),
     );
 
     const { start, end, duration } = extractScanTimestamps(logContent);
