@@ -4,3 +4,8 @@ updates:
     directory: '/'
     schedule:
       interval: 'weekly'
+    open-pull-requests-limit: 10
+    ignore:
+      # Chalk v5+ is ESM-only and breaks Jest tests
+      - dependency-name: "chalk"
+        versions: [">=5.0.0"]

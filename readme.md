@@ -72,7 +72,7 @@ Route | Method | Description
 - AWS SNS
 - Discord Webhooks
 - Jest
-- Chalk
+- Chalk (v4.1.2 - pinned due to ESM compatibility with Jest)
 - Prettier
 - ESLint
 
