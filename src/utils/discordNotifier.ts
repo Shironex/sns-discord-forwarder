@@ -3,7 +3,7 @@ import { logger } from './logger';
 
 /**
  * Options for configuring Discord embed messages
- * 
+ *
  * @interface DiscordEmbedOptions
  * @property {string} [title] - The title of the embed
  * @property {number} [color] - The color of the embed sidebar (hexadecimal)
@@ -17,15 +17,15 @@ interface DiscordEmbedOptions {
 
 /**
  * Sends a message to Discord using a webhook
- * 
+ *
  * @param {string} message - The message content to send
  * @param {DiscordEmbedOptions} [options] - Optional configuration for the Discord embed
  * @returns {Promise<void>} A promise that resolves when the message is sent
- * 
+ *
  * @example
  * // Send a basic message
  * await sendToDiscord('Hello world');
- * 
+ *
  * // Send a formatted message with options
  * await sendToDiscord('System alert!', {
  *   title: 'Error',
