@@ -14,9 +14,9 @@ const app = express();
 app.set('trust proxy', 1);
 
 //? Support both JSON and text/plain (SNS may send either)
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.text({ type: 'text/plain', limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 const snsLimiter = rateLimit({
   windowMs: 60 * 1000 * 60, // 60 minutes

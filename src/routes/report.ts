@@ -33,23 +33,24 @@ reportRouter.post(
       const logContent = fs.readFileSync(filePath, 'utf-8');
 
       logger.info(`[REPORT] Server: ${serverName}`);
-      
+
       // Uzyskaj pola przy użyciu funkcji parseRkhunterLogFields
       const fields = parseRkhunterLogFields(logContent);
-      
+
       // Dodaj informację o serwerze jako pierwsze pole
       fields.unshift({ name: 'Server', value: serverName, inline: true });
-      
+
       // Znajdź liczby ostrzeżeń i błędów dla określenia koloru
-      const warningCount = fields.find(f => f.name === 'Warnings')?.value || '0';
-      const errorCount = fields.find(f => f.name === 'Errors')?.value || '0';
-      
+      const warningCount = fields.find((f) => f.name === 'Warnings')?.value || '0';
+      const errorCount = fields.find((f) => f.name === 'Errors')?.value || '0';
+
       logger.info(`[REPORT] Warnings: ${warningCount}`);
       logger.info(`[REPORT] Errors: ${errorCount}`);
 
       await sendToDiscord('📋 **RKHunter Scan Summary**', {
         title: `RKHunter Log - ${serverName}`,
-        color: parseInt(errorCount) > 0 ? 0xff0000 : parseInt(warningCount) > 0 ? 0xffaa00 : 0x00ff00,
+        color:
+          parseInt(errorCount) > 0 ? 0xff0000 : parseInt(warningCount) > 0 ? 0xffaa00 : 0x00ff00,
         timestamp: true,
         fields,
       });
