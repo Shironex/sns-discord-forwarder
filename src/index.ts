@@ -6,7 +6,7 @@ import { logger } from '@/utils/logger';
 import { healthRouter } from '@/routes/health';
 import rateLimit from 'express-rate-limit';
 import path from 'path';
-
+import { reportRouter } from './routes/report';
 dotenv.config();
 
 const app = express();
@@ -25,7 +25,8 @@ app.use('/sns', snsLimiter);
 
 app.use(snsRouter);
 app.use(healthRouter);
-
+app.use(reportRouter);
+// Serwowanie plików statycznych z katalogu public
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
