@@ -11,6 +11,8 @@ dotenv.config();
 
 const app = express();
 
+app.set('trust proxy', 1);
+
 //? Support both JSON and text/plain (SNS may send either)
 app.use(bodyParser.json());
 app.use(bodyParser.text({ type: 'text/plain' }));
