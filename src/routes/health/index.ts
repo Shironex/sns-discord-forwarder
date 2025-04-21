@@ -1,24 +1,11 @@
 import { Router, Request, Response } from 'express';
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { version } from '@/package.json';
+import { formatUptime, readHtmlFile } from '@/utils';
 
-export const healthRouter = Router();
+export const healthRouter: Router = Router();
 
 const startTime = Date.now();
-const version = require('../../../package.json').version;
-const htmlPath = join(__dirname, '../../public/health.html');
-const html = readFileSync(htmlPath, 'utf-8');
-
-function formatUptime(seconds: number): string {
-  const days = Math.floor(seconds / 86400);
-  const hours = Math.floor((seconds % 86400) / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  let str = '';
-  if (days > 0) str += `${days} day${days > 1 ? 's' : ''}, `;
-  if (hours > 0) str += `${hours} hour${hours > 1 ? 's' : ''}, `;
-  str += `${minutes} min`;
-  return str;
-}
+const html = readHtmlFile('health.html');
 
 healthRouter.get('/health', (req: Request, res: Response) => {
   const now = Date.now();

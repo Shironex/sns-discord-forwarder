@@ -1,12 +1,12 @@
-import express, { Request, Response } from 'express';
-import { SNSEvent } from '../types/aws';
-import { verifySnsSignature } from '../utils/verifySignature';
-import { sendToDiscord } from '../utils/discordNotifier';
-import { logger } from '../utils/logger';
-import type { ParsedNotification } from '../types/sns';
+import express, { Request, Response, Router } from 'express';
+import { SNSEvent } from '@/types/aws';
+import { verifySnsSignature } from '@/utils/verifySignature';
+import { sendToDiscord } from '@/utils/discordNotifier';
+import { logger } from '@/utils/logger';
+import type { ParsedNotification } from '@/types/sns';
 import axios from 'axios';
 
-export const snsRouter = express.Router();
+export const snsRouter: Router = express.Router();
 
 snsRouter.post('/sns', async (req: Request, res: Response): Promise<void> => {
   let rawBody = req.body;

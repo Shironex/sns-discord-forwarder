@@ -1,8 +1,17 @@
 import axios from 'axios';
 import crypto from 'crypto';
-import { SNSEvent } from '../types/aws';
+import { SNSEvent } from '@/types/aws';
 import { logger } from './logger';
 
+/**
+ * Builds a string to sign based on the SNS message type and content
+ * 
+ * @param {SNSEvent} message - The SNS message to build a string from
+ * @returns {string} A formatted string containing the message fields to be signed
+ * @throws {Error} If the message type is not supported
+ * 
+ * @private
+ */
 function buildStringToSign(message: SNSEvent): string {
   let str = '';
 
@@ -34,6 +43,20 @@ function buildStringToSign(message: SNSEvent): string {
   return str;
 }
 
+/**
+ * Verifies the signature of an SNS message to ensure authenticity
+ * 
+ * @param {SNSEvent} message - The SNS message to verify
+ * @returns {Promise<boolean>} A promise that resolves to true if the signature is valid, false otherwise
+ * 
+ * @example
+ * const isValid = await verifySnsSignature(snsMessage);
+ * if (isValid) {
+ *   // Process the message
+ * } else {
+ *   // Reject the message
+ * }
+ */
 export const verifySnsSignature = async (message: SNSEvent): Promise<boolean> => {
   try {
     const { data: cert } = await axios.get(message.SigningCertURL);
