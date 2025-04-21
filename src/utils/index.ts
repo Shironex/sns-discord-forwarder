@@ -86,3 +86,50 @@ export function readHtmlFile(filename: string): string {
 </body>
 </html>`;
 }
+
+/**
+ * Extracts timestamps from a log string
+ *
+ * @param {string} log - The log string to extract timestamps from
+ * @returns {Object} An object containing the start, end, and duration of the scan
+ *
+ * @example
+ * const timestamps = extractScanTimestamps('Start date is 2023-01-01 12:00:00 UTC, End date is 2023-01-01 12:01:00 UTC');
+ * console.log(timestamps); // { start: '2023-01-01 12:00:00 UTC', end: '2023-01-01 12:01:00 UTC', duration: '1 min' }
+ */
+export function extractScanTimestamps(log: string): { start?: string; end?: string; duration?: string } {
+  const startMatch = log.match(/Start date is (.+)/);
+  const endMatch = log.match(/End date is (.+)/);
+
+  if (!startMatch || !endMatch) return {};
+
+  try {
+    const format = new Intl.DateTimeFormat('en-US', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      timeZone: 'UTC',
+      hour12: true,
+    });
+
+    const start = new Date(startMatch[1] + ' UTC');
+    const end = new Date(endMatch[1] + ' UTC');
+    const durationSec = Math.round((end.getTime() - start.getTime()) / 1000);
+    const durationFormatted =
+      durationSec < 60
+        ? `${durationSec} sec`
+        : `${Math.floor(durationSec / 60)}m ${durationSec % 60}s`;
+
+    return {
+      start: start.toUTCString(),
+      end: end.toUTCString(),
+      duration: durationFormatted,
+    };
+  } catch (err) {
+    return {};
+  }
+}
