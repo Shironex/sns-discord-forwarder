@@ -1,19 +1,21 @@
-# 📡 AWS SNS → Discord Forwarder
+# 📡 AWS SNS → Discord + RKHunter Forwarder
 
-A lightweight Node.js service built with TypeScript that listens for Amazon SNS notifications (like **SES bounces**, **complaints**, or **delivery statuses**) and forwards them to a specified **Discord webhook**.
+A lightweight Node.js service built with TypeScript that listens for **Amazon SNS notifications** and **RKHunter log reports**, forwarding structured alerts to a specified **Discord webhook**.
 
-Perfect for monitoring your email reliability right from Discord.
+Perfect for monitoring **email deliverability** and **server security** right from your Discord server.
 
 ---
 
 ## ✨ Features
 
-- ✅ **Express API** with typed SNS endpoint
-- ✅ **AWS SNS signature verification** (secure)
-- ✅ **Bounce, Complaint, and Delivery handling**
-- ✅ **Custom Discord embeds** (with colors + metadata)
+- ✅ **Express API** with SNS + file upload support
+- ✅ **AWS SNS signature verification**
+- ✅ **Bounce, Complaint, and Delivery handling (SES)**
+- ✅ **RKHunter scan parser** with Discord alerts
+- ✅ **Discord embeds** with color-coded metadata and attachments
 - ✅ **Rate limiting** to protect against abuse
-- ✅ **Health check UI** with real-time service status
+- ✅ **Health check** UI with real-time status
+- ✅ **Custom RKHunter setup script with cron**
 - ✅ **Unit-tested** with Jest
 - ✅ **Linted & formatted** with ESLint + Prettier
 
@@ -25,79 +27,114 @@ Perfect for monitoring your email reliability right from Discord.
 
 ```bash
 git clone https://github.com/your-user/sns-discord-forwarder.git
-
 cd sns-discord-forwarder
-
 pnpm install
 ```
 
-
 ### 2. Environment Variables
-Create a .env file and define:
 
-env
-```bash
+Create a `.env` file and define:
+
+```env
 PORT=3000
 DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/your-id/your-token
 NODE_ENV=development
 ```
 
-### 3. Development
+---
+
+## 💻 Development
+
 ```bash
 pnpm dev
 ```
-This will launch the dev server using ts-node.
 
-### 4. Build & Run (production)
+Runs the dev server using `ts-node`.
+
+## 🔧 Production
+
 ```bash
 pnpm build
-
 pnpm start
 ```
 
-### 🧪 Testing
+Compiles to `dist/` and runs with Node.
+
+---
+
+## 🔒 RKHunter Integration
+
+A full Bash automation script is included to:
+
+- Install and configure RKHunter
+- Patch common false positives
+- Schedule **daily cron scans at 03:00**
+- Forward logs to your webhook + email
+- Include **HTML-style Discord embeds** with warnings, suspicious files, and system info
+
+📍 Logs are parsed and displayed neatly inside Discord embeds.
+
+📤 Cron scan uploads the latest `/var/log/rkhunter.log` via `multipart/form-data`.
+
+🧪 Also supports **manual scan + upload** after setup.
+
+---
+
+## 🧪 Testing
+
 ```bash
 pnpm test
 ```
-Uses Jest for unit tests. You can expand src/__tests__ to cover more behavior.
 
-### 📘 Endpoints
+Uses Jest. Add tests under `src/__tests__`.
 
-Route | Method | Description
-/sns | POST | AWS SNS POST endpoint
-/health | GET | Returns service health status
+---
 
-### 🛠 Technologies
+## 📘 Endpoints
+
+| Route     | Method | Description                        |
+|-----------|--------|------------------------------------|
+| `/sns`    | POST   | AWS SNS notification receiver      |
+| `/report` | POST   | Upload RKHunter log for parsing    |
+| `/health` | GET    | Returns 200 OK if service is alive |
+
+---
+
+## 🛠 Technologies
+
 - Express
 - TypeScript
-- AWS SNS
+- AWS SNS + SES
 - Discord Webhooks
-- Jest
-- Chalk (v4.1.2 - pinned due to ESM compatibility with Jest)
-- Prettier
-- ESLint
+- Multer (file upload)
+- Jest (unit testing)
+- Chalk
+- Prettier + ESLint
 
-### 📦 Scripts
+---
 
-Script	Description
+## 📦 Scripts
 
-- **pnpm dev**: 	Run in dev mode (ts-node)
-- **pnpm build**: 	Compile TypeScript to dist/
-- **pnpm start**: 	Run compiled server
-- **pnpm lint**: 	Fix lint issues
-- **pnpm format**: 	Format with Prettier
-- **pnpm test**: 	Run unit tests with Jest
+| Script         | Description                     |
+|----------------|---------------------------------|
+| `pnpm dev`     | Run in dev mode (`ts-node`)     |
+| `pnpm build`   | Compile TypeScript              |
+| `pnpm start`   | Run compiled code               |
+| `pnpm lint`    | Lint with ESLint                |
+| `pnpm format`  | Format code with Prettier       |
+| `pnpm test`    | Run unit tests with Jest        |
 
-### 🧩 Example Use Case
-You're sending transactional emails via Amazon SES and want to:
+---
 
-get notified in Discord if someone marks your email as spam
+## 🧩 Use Cases
 
-monitor delivery success
+- ✅ Get notified when SES mail bounces, fails, or is marked spam
+- ✅ Parse and forward **RKHunter logs** from VPS
+- ✅ Detect suspicious activity or potential compromise
+- ✅ Centralize logs in **Discord with full visibility**
 
-track bounces in real-time
+---
 
-This service handles that for you ✅
+## 📄 License
 
-📄 License
-MIT — free to use, modify, share.
+MIT — free to use, modify, and share.
