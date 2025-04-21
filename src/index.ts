@@ -28,5 +28,9 @@ app.use(healthRouter);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.get('/', (req, res) => {
+  res.send('OK');
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => logger.info(`[READY] Listening on port ${PORT}`));

@@ -39,6 +39,7 @@ env
 ```bash
 PORT=3000
 DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/your-id/your-token
+NODE_ENV=development
 ```
 
 ### 3. Development

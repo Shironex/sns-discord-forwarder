@@ -1,4 +1,4 @@
-import { logger } from '../src/utils/logger';
+import { logger } from '../../src/utils/logger';
 
 describe('logger', () => {
   it('should log info without throwing', () => {

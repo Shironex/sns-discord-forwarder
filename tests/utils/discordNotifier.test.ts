@@ -1,4 +1,4 @@
-import { sendToDiscord } from '../src/utils/discordNotifier';
+import { sendToDiscord } from '../../src/utils/discordNotifier';
 import axios from 'axios';
 
 jest.mock('axios');

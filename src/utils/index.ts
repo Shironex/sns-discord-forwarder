@@ -1,5 +1,6 @@
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
+import { logger } from './logger';
 
 /**
  * Formats uptime in seconds to a human-readable string
@@ -23,36 +24,65 @@ export function formatUptime(seconds: number): string {
 }
 
 /**
- * Reads an HTML file from the filesystem with fallbacks for different environments
+ * Reads an HTML file from the filesystem with environment-specific paths
  *
  * @param {string} filename - The name of the HTML file to read from public directory
  * @returns {string} The contents of the HTML file as a string
- *
- * @throws {Error} Doesn't throw errors, but logs warnings if file isn't found
  *
  * @example
  * const htmlContent = readHtmlFile('health.html');
  */
 export function readHtmlFile(filename: string): string {
-  // Try production path first
-  const prodPath = resolve(process.cwd(), `dist/public/${filename}`);
-  try {
-    return readFileSync(prodPath, 'utf-8');
-  } catch (error) {
-    // Fallback for development environment
-    console.warn(
-      `HTML template ${filename} was not found in production path, using fallback.`,
-      error,
-    );
-    const devPath = resolve(process.cwd(), `src/public/${filename}`);
+  const isDev = process.env.NODE_ENV !== 'production';
+  const basePath = process.cwd();
+
+  // Determine path based on environment
+  const primaryPath = isDev
+    ? resolve(basePath, `src/public/${filename}`)
+    : resolve(basePath, `dist/public/${filename}`);
+
+  // Fallback path if primary doesn't exist
+  const fallbackPath = resolve(basePath, `src/public/${filename}`);
+
+  // Check if file exists before trying to read it
+  if (existsSync(primaryPath)) {
     try {
-      return readFileSync(devPath, 'utf-8');
+      return readFileSync(primaryPath, 'utf-8');
     } catch (error) {
-      console.warn(
-        `HTML template ${filename} was not found in development path, using fallback.`,
-        error,
-      );
-      return `<html><body><h1>${filename}</h1><p>Service is running.</p></body></html>`;
+      logger.warn(`Error reading ${filename} from ${primaryPath}:`, error);
+    }
+  } else {
+    logger.warn(`File ${filename} not found at ${primaryPath}, trying fallback`);
+  }
+
+  // Try fallback path if different from primary
+  if (fallbackPath !== primaryPath && existsSync(fallbackPath)) {
+    try {
+      return readFileSync(fallbackPath, 'utf-8');
+    } catch (error) {
+      logger.warn(`Error reading ${filename} from fallback path:`, error);
     }
   }
+
+  // Last resort - return a simple HTML page
+  logger.warn(`Could not find ${filename}, using default template`);
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SNS Discord Forwarder - ${filename}</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+    h1 { color: #333; }
+    .status { padding: 20px; background: #f4f4f4; border-left: 4px solid #5cb85c; }
+  </style>
+</head>
+<body>
+  <h1>SNS Discord Forwarder</h1>
+  <div class="status">
+    <h2>Service is running</h2>
+    <p>The requested file "${filename}" could not be found.</p>
+  </div>
+</body>
+</html>`;
 }

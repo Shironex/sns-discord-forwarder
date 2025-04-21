@@ -1,10 +1,7 @@
-import { verifySnsSignature } from '../src/utils/verifySignature';
+import { verifySnsSignature } from '../../src/utils/verifySignature';
 import axios from 'axios';
-import crypto from 'crypto';
 
 jest.mock('axios');
-
-const mockCert = '-----BEGIN CERTIFICATE-----\nMIIBIjANBgkqh...\n-----END CERTIFICATE-----';
 
 describe('verifySnsSignature', () => {
   beforeEach(() => {
@@ -12,8 +9,7 @@ describe('verifySnsSignature', () => {
   });
 
   it('should return false if SigningCertURL is missing', async () => {
-    // @ts-expect-error
-    expect(await verifySnsSignature({})).toBe(false);
+    expect(await verifySnsSignature({} as any)).toBe(false);
   });
 
   it('should return false for non-Notification type', async () => {
@@ -21,8 +17,8 @@ describe('verifySnsSignature', () => {
       Type: 'SubscriptionConfirmation',
       SigningCertURL: 'https://example.com/cert.pem',
     };
-    // @ts-expect-error
-    expect(await verifySnsSignature(event)).toBe(false);
+
+    expect(await verifySnsSignature(event as any)).toBe(false);
   });
 
   it('should return false if axios.get throws', async () => {
