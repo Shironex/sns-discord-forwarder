@@ -87,20 +87,23 @@ export const sendToDiscord = async (message: string, options?: DiscordEmbedOptio
     await axios.post(webhookUrl, {
       embeds: [embed], // uwzględnij tylko poprawne pola!
     });
-    
+
     logger.info('[Discord] Embed sent');
-    
+
     if (options?.filePath) {
       const form = new FormData();
-      form.append('payload_json', JSON.stringify({
-        content: '📎 Full scan log attached.',
-      }));
+      form.append(
+        'payload_json',
+        JSON.stringify({
+          content: '📎 Full scan log attached.',
+        }),
+      );
       form.append('file', fs.createReadStream(options.filePath), options.fileName || 'log.txt');
-    
+
       await axios.post(webhookUrl, form, {
         headers: form.getHeaders(),
       });
-    
+
       logger.info('[Discord] File attached');
     }
   } catch (err) {

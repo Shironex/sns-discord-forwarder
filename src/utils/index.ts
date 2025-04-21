@@ -147,9 +147,7 @@ export function parseRkhunterLogFields(
     .split('\n')
     .filter((line) => line.match(/\[\s*Warning\s*\]/i) || line.toLowerCase().includes('warning'));
 
-  const errorLines = logContent
-    .split('\n')
-    .filter((line) => line.match(/\[\s*Error\s*\]/i));
+  const errorLines = logContent.split('\n').filter((line) => line.match(/\[\s*Error\s*\]/i));
 
   fields.push(
     { name: 'Warnings', value: `${warningLines.length}`, inline: true },
@@ -302,10 +300,10 @@ export function parseRkhunterLogFields(
   if (disabledTestsMatch) {
     const disabledTests = disabledTestsMatch[1].trim();
     const shortenedTests = disabledTests.split(/\s+/).slice(0, 10).join(', ');
-    fields.push({ 
-      name: 'Disabled Tests', 
-      value: shortenedTests + (disabledTests.split(/\s+/).length > 10 ? '...' : ''), 
-      inline: false 
+    fields.push({
+      name: 'Disabled Tests',
+      value: shortenedTests + (disabledTests.split(/\s+/).length > 10 ? '...' : ''),
+      inline: false,
     });
   }
 
