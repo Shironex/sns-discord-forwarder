@@ -1,7 +1,8 @@
 import { formatUptime, readHtmlFile } from '../../src/utils';
 import fs from 'fs';
+import path from 'path';
 
-// Mock the fs module
+// Mock fs functions
 jest.mock('fs', () => ({
   readFileSync: jest.fn(),
   existsSync: jest.fn(),
@@ -68,18 +69,9 @@ describe('readHtmlFile', () => {
     // Set environment to development
     process.env.NODE_ENV = 'development';
     
-    // Mock existsSync to return true for src path
-    (fs.existsSync as jest.Mock).mockImplementation((path: string) => {
-      return path.includes('src/public/test.html');
-    });
-    
-    // Mock readFileSync to return expected content
-    (fs.readFileSync as jest.Mock).mockImplementation((path: string) => {
-      if (path.includes('src/public/test.html')) {
-        return 'DEV HTML CONTENT';
-      }
-      throw new Error('File not found');
-    });
+    // Setup mocks
+    (fs.existsSync as jest.Mock).mockReturnValue(true);
+    (fs.readFileSync as jest.Mock).mockReturnValue('DEV HTML CONTENT');
     
     // Call the function
     const result = readHtmlFile('test.html');
@@ -88,25 +80,23 @@ describe('readHtmlFile', () => {
     expect(result).toBe('DEV HTML CONTENT');
     expect(fs.existsSync).toHaveBeenCalledTimes(1);
     expect(fs.readFileSync).toHaveBeenCalledTimes(1);
-    expect(fs.existsSync).toHaveBeenCalledWith(expect.stringContaining('src/public/test.html'));
+    
+    // Sprawdź czy ścieżka zawiera src/public/test.html lub src\public\test.html
+    const existsSyncPath = (fs.existsSync as jest.Mock).mock.calls[0][0];
+    expect(existsSyncPath).toMatch(/src[/\\]public[/\\]test\.html$/);
+    
+    const readFileSyncPath = (fs.readFileSync as jest.Mock).mock.calls[0][0];
+    expect(readFileSyncPath).toMatch(/src[/\\]public[/\\]test\.html$/);
+    expect((fs.readFileSync as jest.Mock).mock.calls[0][1]).toBe('utf-8');
   });
 
   test('should read file from primary path in production environment', () => {
     // Set environment to production
     process.env.NODE_ENV = 'production';
     
-    // Mock existsSync to return true for dist path
-    (fs.existsSync as jest.Mock).mockImplementation((path: string) => {
-      return path.includes('dist/public/test.html');
-    });
-    
-    // Mock readFileSync to return expected content
-    (fs.readFileSync as jest.Mock).mockImplementation((path: string) => {
-      if (path.includes('dist/public/test.html')) {
-        return 'PROD HTML CONTENT';
-      }
-      throw new Error('File not found');
-    });
+    // Setup mocks
+    (fs.existsSync as jest.Mock).mockReturnValue(true);
+    (fs.readFileSync as jest.Mock).mockReturnValue('PROD HTML CONTENT');
     
     // Call the function
     const result = readHtmlFile('test.html');
@@ -115,25 +105,23 @@ describe('readHtmlFile', () => {
     expect(result).toBe('PROD HTML CONTENT');
     expect(fs.existsSync).toHaveBeenCalledTimes(1);
     expect(fs.readFileSync).toHaveBeenCalledTimes(1);
-    expect(fs.existsSync).toHaveBeenCalledWith(expect.stringContaining('dist/public/test.html'));
+    
+    // Sprawdź czy ścieżka zawiera dist/public/test.html lub dist\public\test.html
+    const existsSyncPath = (fs.existsSync as jest.Mock).mock.calls[0][0];
+    expect(existsSyncPath).toMatch(/dist[/\\]public[/\\]test\.html$/);
+    
+    const readFileSyncPath = (fs.readFileSync as jest.Mock).mock.calls[0][0];
+    expect(readFileSyncPath).toMatch(/dist[/\\]public[/\\]test\.html$/);
+    expect((fs.readFileSync as jest.Mock).mock.calls[0][1]).toBe('utf-8');
   });
 
   test('should try fallback path when primary path does not exist', () => {
     // Set environment to production
     process.env.NODE_ENV = 'production';
     
-    // Mock existsSync to return false for primary path, true for fallback
-    (fs.existsSync as jest.Mock).mockImplementation((path: string) => {
-      return path.includes('src/public/test.html');
-    });
-    
-    // Mock readFileSync to return content for fallback path
-    (fs.readFileSync as jest.Mock).mockImplementation((path: string) => {
-      if (path.includes('src/public/test.html')) {
-        return 'FALLBACK HTML CONTENT';
-      }
-      throw new Error('File not found');
-    });
+    // Mock existsSync to return false for first call (primary path), true for second call (fallback path)
+    (fs.existsSync as jest.Mock).mockImplementationOnce(() => false).mockImplementationOnce(() => true);
+    (fs.readFileSync as jest.Mock).mockReturnValue('FALLBACK HTML CONTENT');
     
     // Call the function
     const result = readHtmlFile('test.html');
@@ -142,6 +130,15 @@ describe('readHtmlFile', () => {
     expect(result).toBe('FALLBACK HTML CONTENT');
     expect(fs.existsSync).toHaveBeenCalledTimes(2);
     expect(fs.readFileSync).toHaveBeenCalledTimes(1);
+    
+    // Sprawdź ścieżki używane w wywołaniach, uwzględniając zarówno format Unix jak i Windows
+    const existsSyncCalls = (fs.existsSync as jest.Mock).mock.calls;
+    expect(existsSyncCalls[0][0]).toMatch(/dist[/\\]public[/\\]test\.html$/);
+    expect(existsSyncCalls[1][0]).toMatch(/src[/\\]public[/\\]test\.html$/);
+    
+    const readFileSyncPath = (fs.readFileSync as jest.Mock).mock.calls[0][0];
+    expect(readFileSyncPath).toMatch(/src[/\\]public[/\\]test\.html$/);
+    expect((fs.readFileSync as jest.Mock).mock.calls[0][1]).toBe('utf-8');
   });
 
   test('should return default HTML template when no file exists', () => {

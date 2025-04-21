@@ -5,5 +5,10 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@/package.json$': '<rootDir>/package.json'
+  },
+  globals: {
+    'ts-jest': {
+      tsconfig: 'tsconfig.jest.json'
+    }
   }
 }; 
