@@ -3,10 +3,10 @@ import { resolve } from 'path';
 
 /**
  * Formats uptime in seconds to a human-readable string
- * 
+ *
  * @param {number} seconds - The number of seconds to format
  * @returns {string} A formatted string representation of the uptime (e.g. "2 days, 3 hours, 45 min")
- * 
+ *
  * @example
  * formatUptime(3665) // Returns "1 hour, 1 min"
  * formatUptime(172800) // Returns "2 days, 0 min"
@@ -24,12 +24,12 @@ export function formatUptime(seconds: number): string {
 
 /**
  * Reads an HTML file from the filesystem with fallbacks for different environments
- * 
+ *
  * @param {string} filename - The name of the HTML file to read from public directory
  * @returns {string} The contents of the HTML file as a string
- * 
+ *
  * @throws {Error} Doesn't throw errors, but logs warnings if file isn't found
- * 
+ *
  * @example
  * const htmlContent = readHtmlFile('health.html');
  */
@@ -49,4 +49,4 @@ export function readHtmlFile(filename: string): string {
       return `<html><body><h1>${filename}</h1><p>Service is running.</p></body></html>`;
     }
   }
-} 
+}

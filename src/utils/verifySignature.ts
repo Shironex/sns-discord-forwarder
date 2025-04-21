@@ -5,11 +5,11 @@ import { logger } from './logger';
 
 /**
  * Builds a string to sign based on the SNS message type and content
- * 
+ *
  * @param {SNSEvent} message - The SNS message to build a string from
  * @returns {string} A formatted string containing the message fields to be signed
  * @throws {Error} If the message type is not supported
- * 
+ *
  * @private
  */
 function buildStringToSign(message: SNSEvent): string {
@@ -45,10 +45,10 @@ function buildStringToSign(message: SNSEvent): string {
 
 /**
  * Verifies the signature of an SNS message to ensure authenticity
- * 
+ *
  * @param {SNSEvent} message - The SNS message to verify
  * @returns {Promise<boolean>} A promise that resolves to true if the signature is valid, false otherwise
- * 
+ *
  * @example
  * const isValid = await verifySnsSignature(snsMessage);
  * if (isValid) {
