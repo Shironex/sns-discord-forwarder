@@ -85,7 +85,7 @@ export const sendToDiscord = async (message: string, options?: DiscordEmbedOptio
 
     if (options?.filePath) {
       const form = new FormData();
-      form.append('payload_json', JSON.stringify({ embeds: [embed] }));
+      form.append('payload_json', JSON.stringify({ embeds: [embed.embeds[0]] }));
       form.append('file', fs.createReadStream(options.filePath), options.fileName || 'log.txt');
 
       await axios.post(webhookUrl, form, {
@@ -93,7 +93,7 @@ export const sendToDiscord = async (message: string, options?: DiscordEmbedOptio
       });
     } else {
       await axios.post(webhookUrl, {
-        embeds: [embed],
+        embeds: [embed.embeds[0]],
       });
     }
 
