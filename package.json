@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@types/form-data": "^2.5.2",
-    "axios": "^1.8.4",
+    "axios": "^1.9.0",
     "body-parser": "^2.2.0",
     "chalk": "^4.1.2",
     "crypto": "^1.0.1",
