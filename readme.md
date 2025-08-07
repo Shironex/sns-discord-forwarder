@@ -26,7 +26,7 @@ Perfect for monitoring **email deliverability** and **server security** right fr
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/your-user/sns-discord-forwarder.git
+git clone https://github.com/Shironex/sns-discord-forwarder.git
 cd sns-discord-forwarder
 pnpm install
 ```
