@@ -1,3 +1,13 @@
+/**
+ * Utility Functions Module
+ *
+ * This module contains various utility functions used throughout the application:
+ * - Time formatting for uptime display
+ * - HTML file reading with environment-specific paths
+ * - Timestamp extraction from log files
+ * - RKHunter log parsing for Discord embeds
+ */
+
 import { readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
 import { logger } from './logger';
@@ -12,14 +22,27 @@ import { logger } from './logger';
  * formatUptime(3665) // Returns "1 hour, 1 min"
  * formatUptime(172800) // Returns "2 days, 0 min"
  */
+/**
+ * Converts seconds into a human-readable time format (e.g., "2 days, 3 hours, 45 min")
+ *
+ * Used primarily for displaying application uptime in the health check endpoint.
+ * The function progressively breaks down time from largest to smallest unit.
+ *
+ * @param seconds - Total number of seconds to format
+ * @returns Formatted string showing days, hours, and minutes
+ */
 export function formatUptime(seconds: number): string {
-  const days = Math.floor(seconds / 86400);
-  const hours = Math.floor((seconds % 86400) / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
+  // Calculate time components by successively dividing and taking remainders
+  const days = Math.floor(seconds / 86400); // 86400 seconds = 1 day
+  const hours = Math.floor((seconds % 86400) / 3600); // 3600 seconds = 1 hour
+  const minutes = Math.floor((seconds % 3600) / 60); // 60 seconds = 1 minute
+
+  // Build the result string progressively
   let str = '';
   if (days > 0) str += `${days} day${days > 1 ? 's' : ''}, `;
   if (hours > 0) str += `${hours} hour${hours > 1 ? 's' : ''}, `;
   str += `${minutes} min`;
+
   return str;
 }
 
@@ -32,19 +55,36 @@ export function formatUptime(seconds: number): string {
  * @example
  * const htmlContent = readHtmlFile('health.html');
  */
+/**
+ * Reads HTML files with intelligent path resolution for different environments
+ *
+ * This function handles the complexity of finding static files in both development
+ * and production environments. It tries multiple fallback strategies before
+ * providing a default template.
+ *
+ * Path resolution strategy:
+ * 1. Try environment-specific path (src/ for dev, dist/ for prod)
+ * 2. Try fallback path (src/ as fallback)
+ * 3. Return default HTML template if all else fails
+ *
+ * @param filename - Name of the HTML file to read (e.g., 'health.html')
+ * @returns Complete HTML content as string
+ */
 export function readHtmlFile(filename: string): string {
+  // Determine if we're in development mode
   const isDev = process.env.NODE_ENV !== 'production';
   const basePath = process.cwd();
 
-  // Determine path based on environment
+  // Path resolution: different directories for dev vs production builds
+  // Dev: source files in src/public/, Prod: built files in dist/public/
   const primaryPath = isDev
     ? resolve(basePath, `src/public/${filename}`)
     : resolve(basePath, `dist/public/${filename}`);
 
-  // Fallback path if primary doesn't exist
+  // Always try source path as fallback (works for both environments)
   const fallbackPath = resolve(basePath, `src/public/${filename}`);
 
-  // Check if file exists before trying to read it
+  // Strategy 1: Try the primary environment-specific path
   if (existsSync(primaryPath)) {
     try {
       return readFileSync(primaryPath, 'utf-8');
@@ -55,7 +95,7 @@ export function readHtmlFile(filename: string): string {
     logger.warn(`File ${filename} not found at ${primaryPath}, trying fallback`);
   }
 
-  // Try fallback path if different from primary
+  // Strategy 2: Try fallback path if different from primary
   if (fallbackPath !== primaryPath && existsSync(fallbackPath)) {
     try {
       return readFileSync(fallbackPath, 'utf-8');
@@ -64,8 +104,10 @@ export function readHtmlFile(filename: string): string {
     }
   }
 
-  // Last resort - return a simple HTML page
+  // Strategy 3: Last resort - return a default HTML template
   logger.warn(`Could not find ${filename}, using default template`);
+  // Return a minimal HTML fallback template with basic styling
+  // This ensures the health endpoint always returns valid HTML even if files are missing
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -97,20 +139,36 @@ export function readHtmlFile(filename: string): string {
  * const timestamps = extractScanTimestamps('Start date is 2023-01-01 12:00:00 UTC, End date is 2023-01-01 12:01:00 UTC');
  * console.log(timestamps); // { start: '2023-01-01 12:00:00 UTC', end: '2023-01-01 12:01:00 UTC', duration: '1 min' }
  */
+/**
+ * Extracts and formats scan timing information from RKHunter log content
+ *
+ * This function parses log timestamps and calculates scan duration, which is
+ * useful for performance monitoring and scan analytics.
+ *
+ * @param log - Raw RKHunter log content as string
+ * @returns Object containing start time, end time, and formatted duration
+ */
 export function extractScanTimestamps(log: string): {
   start?: string;
   end?: string;
   duration?: string;
 } {
+  // Extract start and end timestamps using regex patterns
   const startMatch = log.match(/Start date is (.+)/);
   const endMatch = log.match(/End date is (.+)/);
 
+  // Return empty object if timestamps not found
   if (!startMatch || !endMatch) return {};
 
   try {
+    // Parse timestamps and assume UTC timezone (common in server logs)
     const start = new Date(startMatch[1] + ' UTC');
     const end = new Date(endMatch[1] + ' UTC');
+
+    // Calculate duration in seconds
     const durationSec = Math.round((end.getTime() - start.getTime()) / 1000);
+
+    // Format duration as either seconds or minutes + seconds
     const durationFormatted =
       durationSec < 60
         ? `${durationSec} sec`
@@ -137,66 +195,87 @@ export function extractScanTimestamps(log: string): {
  * const fields = parseRkhunterLogFields(logContent);
  * await sendToDiscord('RKHunter Scan Results', { fields });
  */
+/**
+ * Comprehensive RKHunter log parser for Discord embed fields
+ *
+ * This function analyzes RKHunter security scan logs and extracts key information
+ * into structured fields suitable for Discord embeds. It identifies warnings,
+ * errors, system information, and security findings.
+ *
+ * The parser looks for various patterns in the log file including:
+ * - Warning and error counts
+ * - System information (hostname, OS, version)
+ * - Security findings (rootkits, suspicious files, permissions)
+ * - Scan metadata (timestamps, configuration)
+ *
+ * @param logContent - Complete RKHunter log file content
+ * @returns Array of Discord embed fields with security scan data
+ */
 export function parseRkhunterLogFields(
   logContent: string,
 ): Array<{ name: string; value: string; inline?: boolean }> {
   const fields: Array<{ name: string; value: string; inline?: boolean }> = [];
 
-  // Extract warning and error counts
+  // Section 1: Basic scan statistics - warnings and errors
+  // These provide the overall health status of the security scan
   const warningLines = logContent
     .split('\n')
     .filter((line) => line.match(/\[\s*Warning\s*\]/i) || line.toLowerCase().includes('warning'));
 
   const errorLines = logContent.split('\n').filter((line) => line.match(/\[\s*Error\s*\]/i));
 
+  // Add warning and error counts as the first fields (most important metrics)
   fields.push(
     { name: 'Warnings', value: `${warningLines.length}`, inline: true },
     { name: 'Errors', value: `${errorLines.length}`, inline: true },
   );
 
-  // Extract hostname
+  // Section 2: System identification information
+  // Extract hostname from scan header
   const hostnameMatch = logContent.match(/Rootkit Hunter.*on\s+(.+)/i);
   if (hostnameMatch) {
     fields.push({ name: 'Hostname', value: hostnameMatch[1].trim(), inline: true });
   }
 
-  // Extract OS information
+  // Extract operating system information
   const osMatch = logContent.match(/Found O\/S name: (.+)/);
   if (osMatch) {
     fields.push({ name: 'OS', value: osMatch[1].trim(), inline: true });
   }
 
-  // Extract detected OS
+  // Extract detected OS type (more specific than general OS name)
   const detectedOsMatch = logContent.match(/Detected operating system is\s+'(.+)'/);
   if (detectedOsMatch) {
     fields.push({ name: 'OS Type', value: detectedOsMatch[1].trim(), inline: true });
   }
 
-  // Extract RKHunter version
+  // Extract RKHunter scanner version for compatibility tracking
   const versionMatch = logContent.match(/Rootkit Hunter version\s+([0-9.]+)/i);
   if (versionMatch) {
     fields.push({ name: 'Version', value: versionMatch[1], inline: true });
   }
 
-  // Extract configuration file
+  // Section 3: Configuration and scan metadata
+  // Extract configuration file path for troubleshooting
   const configFileMatch = logContent.match(/Using configuration file\s+'(.+)'/);
   if (configFileMatch) {
     fields.push({ name: 'Config File', value: configFileMatch[1].trim(), inline: false });
   }
 
-  // Extract email notification
+  // Extract email notification settings (if configured)
   const emailMatch = logContent.match(/Emailing warnings to\s+'(.+)'\s+using/);
   if (emailMatch) {
     fields.push({ name: 'Email Notifications', value: emailMatch[1].trim(), inline: false });
   }
 
-  // Extract database directory
+  // Extract database directory path (where RKHunter stores its data)
   const dbDirMatch = logContent.match(/Using\s+'(.+)'\s+as the database directory/);
   if (dbDirMatch) {
     fields.push({ name: 'Database Dir', value: dbDirMatch[1].trim(), inline: false });
   }
 
-  // Extract timestamps
+  // Section 4: Scan timing information
+  // Extract and format scan start time, end time, and duration
   const { start, end, duration } = extractScanTimestamps(logContent);
 
   if (start && end && duration) {
@@ -207,7 +286,8 @@ export function parseRkhunterLogFields(
     );
   }
 
-  // Extract rootkits
+  // Section 5: Critical security findings
+  // Extract potential rootkit detections (most serious alerts)
   const rootkitLines = logContent
     .split('\n')
     .filter(
@@ -217,12 +297,12 @@ export function parseRkhunterLogFields(
   if (rootkitLines.length) {
     fields.push({
       name: 'Rootkits',
-      value: rootkitLines.slice(0, 5).join('\n').slice(0, 1024),
+      value: rootkitLines.slice(0, 5).join('\n').slice(0, 1024), // Limit to 5 lines and 1024 chars
       inline: false,
     });
   }
 
-  // Extract changed files
+  // Extract files that have been changed since last scan (potential compromise indicator)
   const changedFiles = logContent
     .split('\n')
     .filter((line) => line.includes('File:') && line.toLowerCase().includes('changed'));
@@ -230,12 +310,12 @@ export function parseRkhunterLogFields(
   if (changedFiles.length) {
     fields.push({
       name: 'Changed Files',
-      value: changedFiles.slice(0, 5).join('\n').slice(0, 1024),
+      value: changedFiles.slice(0, 5).join('\n').slice(0, 1024), // Limit for Discord embed
       inline: false,
     });
   }
 
-  // Extract suspicious SUID/SGID
+  // Extract suspicious SUID/SGID files (security risk - elevated privileges)
   const suidSgidLines = logContent
     .split('\n')
     .filter((line) => line.includes('[ Warning ]') && /suid|sgid/i.test(line));
@@ -248,7 +328,7 @@ export function parseRkhunterLogFields(
     });
   }
 
-  // Extract hidden files/directories
+  // Extract hidden files and directories (potential malware hiding spots)
   const hiddenLines = logContent
     .split('\n')
     .filter((line) => line.includes('[ Warning ]') && /hidden file|hidden directory/i.test(line));
@@ -261,7 +341,7 @@ export function parseRkhunterLogFields(
     });
   }
 
-  // Extract UID 0 entries
+  // Extract files owned by root (UID 0) - important for privilege escalation detection
   const uidLines = logContent.split('\n').filter((line) => line.includes('UID 0'));
 
   if (uidLines.length) {
@@ -272,7 +352,7 @@ export function parseRkhunterLogFields(
     });
   }
 
-  // Extract suspicious network connections or ports
+  // Extract suspicious network connections or ports (potential backdoors)
   const networkLines = logContent
     .split('\n')
     .filter(
@@ -289,13 +369,14 @@ export function parseRkhunterLogFields(
     });
   }
 
-  // Enabled tests
+  // Section 6: Scan configuration details
+  // Extract which security tests were enabled during the scan
   const enabledTestsMatch = logContent.match(/Enabled tests are:\s+(.+)/);
   if (enabledTestsMatch) {
     fields.push({ name: 'Enabled Tests', value: enabledTestsMatch[1].trim(), inline: false });
   }
 
-  // Disabled tests (shortened)
+  // Extract which tests were disabled (shortened for brevity)
   const disabledTestsMatch = logContent.match(/Disabled tests are:\s+(.+)/);
   if (disabledTestsMatch) {
     const disabledTests = disabledTestsMatch[1].trim();
@@ -307,7 +388,8 @@ export function parseRkhunterLogFields(
     });
   }
 
-  // Limit fields to 25 needed for Discord embed
+  // Discord embed limitation: maximum 25 fields
+  // Truncate if we have too many fields to prevent Discord API errors
   if (fields.length > 25) {
     fields.splice(25);
   }

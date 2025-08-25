@@ -1,3 +1,17 @@
+/**
+ * AWS SNS Webhook Handler
+ *
+ * This module handles incoming AWS SNS (Simple Notification Service) notifications,
+ * specifically designed for Amazon SES (Simple Email Service) email events.
+ *
+ * Supported SNS message types:
+ * - SubscriptionConfirmation: Initial subscription verification from AWS
+ * - Notification: Email delivery events (Bounce, Complaint, Delivery)
+ *
+ * The handler verifies SNS signatures for security, parses email notifications,
+ * and forwards formatted alerts to Discord with color-coded embeds.
+ */
+
 import express, { Request, Response, Router } from 'express';
 import { SNSEvent } from '@/types/aws';
 import { verifySnsSignature } from '@/utils/verifySignature';
@@ -6,6 +20,7 @@ import { logger } from '@/utils/logger';
 import type { ParsedNotification } from '@/types/sns';
 import axios from 'axios';
 
+// Create Express router for SNS-related endpoints
 export const snsRouter: Router = express.Router();
 
 snsRouter.post('/sns', async (req: Request, res: Response): Promise<void> => {

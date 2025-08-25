@@ -81,7 +81,7 @@ describe('readHtmlFile', () => {
     expect(fs.existsSync).toHaveBeenCalledTimes(1);
     expect(fs.readFileSync).toHaveBeenCalledTimes(1);
     
-    // Sprawdź czy ścieżka zawiera src/public/test.html lub src\public\test.html
+    // Check if path contains src/public/test.html or src\public\test.html
     const existsSyncPath = (fs.existsSync as jest.Mock).mock.calls[0][0];
     expect(existsSyncPath).toMatch(/src[/\\]public[/\\]test\.html$/);
     
@@ -106,7 +106,7 @@ describe('readHtmlFile', () => {
     expect(fs.existsSync).toHaveBeenCalledTimes(1);
     expect(fs.readFileSync).toHaveBeenCalledTimes(1);
     
-    // Sprawdź czy ścieżka zawiera dist/public/test.html lub dist\public\test.html
+    // Check if path contains dist/public/test.html or dist\public\test.html
     const existsSyncPath = (fs.existsSync as jest.Mock).mock.calls[0][0];
     expect(existsSyncPath).toMatch(/dist[/\\]public[/\\]test\.html$/);
     
@@ -131,7 +131,7 @@ describe('readHtmlFile', () => {
     expect(fs.existsSync).toHaveBeenCalledTimes(2);
     expect(fs.readFileSync).toHaveBeenCalledTimes(1);
     
-    // Sprawdź ścieżki używane w wywołaniach, uwzględniając zarówno format Unix jak i Windows
+    // Check the paths used in calls, considering both Unix and Windows format
     const existsSyncCalls = (fs.existsSync as jest.Mock).mock.calls;
     expect(existsSyncCalls[0][0]).toMatch(/dist[/\\]public[/\\]test\.html$/);
     expect(existsSyncCalls[1][0]).toMatch(/src[/\\]public[/\\]test\.html$/);

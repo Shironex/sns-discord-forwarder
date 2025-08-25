@@ -1,3 +1,17 @@
+/**
+ * RKHunter Log Processing Endpoint
+ *
+ * This module handles RKHunter (Rootkit Hunter) security scan log files,
+ * parsing them into structured Discord embeds with relevant security information.
+ *
+ * Features:
+ * - File upload handling with size limits
+ * - RKHunter log parsing and field extraction
+ * - Color-coded Discord alerts based on scan results
+ * - Server identification via headers
+ * - Automatic temporary file cleanup
+ */
+
 import express, { Request, Response, Router } from 'express';
 import { sendToDiscord } from '../utils/discordNotifier';
 import { logger } from '../utils/logger';
@@ -6,18 +20,18 @@ import os from 'os';
 import fs from 'fs';
 import multer from 'multer';
 
-// Konfiguracja multer do obsługi plików
+// Configure multer for secure file upload handling
 const upload = multer({
   dest: os.tmpdir(),
   limits: { fileSize: 10 * 1024 * 1024 }, // limit 10MB
 });
 
 export const reportRouter: Router = express.Router();
+
 interface MulterRequest extends Request {
   file?: Express.Multer.File;
 }
 
-// Endpoint /report obsługuje zarówno bezpośrednie teksty jak i pliki
 reportRouter.post(
   '/report',
   upload.single('logfile'),
@@ -29,18 +43,16 @@ reportRouter.post(
       }
 
       const serverName = req.headers['x-server']?.toString() || 'Unknown Server';
+
       const filePath = req.file.path;
       const logContent = fs.readFileSync(filePath, 'utf-8');
 
-      logger.info(`[REPORT] Server: ${serverName}`);
+      logger.info(`[REPORT] Processing log from server: ${serverName}`);
 
-      // Uzyskaj pola przy użyciu funkcji parseRkhunterLogFields
       const fields = parseRkhunterLogFields(logContent);
 
-      // Dodaj informację o serwerze jako pierwsze pole
       fields.unshift({ name: 'Server', value: serverName, inline: true });
 
-      // Znajdź liczby ostrzeżeń i błędów dla określenia koloru
       const warningCount = fields.find((f) => f.name === 'Warnings')?.value || '0';
       const errorCount = fields.find((f) => f.name === 'Errors')?.value || '0';
 
@@ -63,7 +75,7 @@ reportRouter.post(
         fileName: req.file.originalname || 'rkhunter.log',
       });
 
-      fs.unlinkSync(filePath); // Cleanup temp file
+      fs.unlinkSync(filePath);
       res.status(200).send('Report sent to Discord');
     } catch (err) {
       logger.error('[REPORT] Failed to process report:', err);
