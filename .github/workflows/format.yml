@@ -41,7 +41,7 @@ jobs:
 
       - name: Commit changes if any
         if: steps.check-format.outcome == 'failure'
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: 'style: format code with prettier'
           commit_user_name: 'GitHub Actions'
