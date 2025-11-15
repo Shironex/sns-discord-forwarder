@@ -1,0 +1,71 @@
+# Labeler configuration for automatic PR labeling based on changed files
+# Labels will be automatically applied when PRs are opened or updated
+
+# Source code changes
+sdk:
+  - changed-files:
+      - any-glob-to-any-file: 'src/**'
+      - any-glob-to-any-file: 'src/**/*'
+
+# Configuration changes
+config:
+  - changed-files:
+      - any-glob-to-any-file: 'tsconfig.json'
+      - any-glob-to-any-file: 'tsup.config.ts'
+      - any-glob-to-any-file: 'jest.config.js'
+      - any-glob-to-any-file: 'eslint.config.js'
+      - any-glob-to-any-file: '*.config.js'
+      - any-glob-to-any-file: '*.config.mjs'
+      - any-glob-to-any-file: '*.config.ts'
+
+# CI/CD and GitHub workflows
+ci:
+  - changed-files:
+      - any-glob-to-any-file: '.github/**'
+
+# Documentation changes
+documentation:
+  - changed-files:
+      - any-glob-to-any-file: '*.md'
+      - any-glob-to-any-file: 'readme.md'
+      - any-glob-to-any-file: 'README.md'
+      - any-glob-to-any-file: 'CHANGELOG.md'
+      - any-glob-to-any-file: 'CONTRIBUTING.md'
+
+# Dependency and package management
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file: 'package.json'
+      - any-glob-to-any-file: 'pnpm-lock.yaml'
+
+# Testing changes
+tests:
+  - changed-files:
+      - any-glob-to-any-file: '**/*.spec.ts'
+      - any-glob-to-any-file: '**/*.test.ts'
+      - any-glob-to-any-file: 'tests/**'
+      - any-glob-to-any-file: '**/__tests__/**'
+      - any-glob-to-any-file: 'jest.config.*'
+
+# Build and distribution
+build:
+  - changed-files:
+      - any-glob-to-any-file: 'dist/**'
+      - any-glob-to-any-file: 'tsup.config.*'
+
+# Type definitions
+types:
+  - changed-files:
+      - any-glob-to-any-file: 'src/types/**'
+      - any-glob-to-any-file: '**/*.d.ts'
+
+# Utility functions
+utils:
+  - changed-files:
+      - any-glob-to-any-file: 'src/utils/**'
+
+# Routes and API endpoints
+routes:
+  - changed-files:
+      - any-glob-to-any-file: 'src/routes/**'
+
